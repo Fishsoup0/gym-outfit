@@ -1,0 +1,6 @@
+{"desc":"体脂偏高男生，想遮肚子，冬天",
+ "prompt":"我体脂比较高，肚子明显，冬天去健身房练全身。有：白色修身短袖、黑色oversize短袖、深灰卫衣、黑色收脚裤、黑色5寸短裤、白色跑鞋。怎么穿？",
+ "user":{"sex":"m","build":"high_fat","weaknesses":["abs"],"day":"full","scene":"strength","season":"winter"},
+ "wardrobe":[{"type":"fitted_tee","color":"white"},{"type":"oversized_tee","color":"black"},{"type":"hoodie","color":"grey_dark"},{"type":"joggers","color":"black"},{"type":"shorts_5","color":"black"},{"type":"running_shoes","color":"white"}],
+ "mode":"rank",
+ "expect":{"top1_exclude":["fitted_tee","tank","stringer","shorts_5"],"top1_include_any":["oversized_tee","hoodie"]}}

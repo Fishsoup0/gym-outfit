@@ -1,0 +1,6 @@
+{"desc":"只给衣服不给任何个人信息",
+ "prompt":"帮我搭一下：黑短袖、灰短裤、白鞋。",
+ "user":{},
+ "wardrobe":[{"type":"regular_tee","color":"black"},{"type":"shorts_7","color":"grey"},{"type":"flat_shoes","color":"white"}],
+ "mode":"rank",
+ "expect":{"top1_verdict_in":["推荐","可以穿"]}}

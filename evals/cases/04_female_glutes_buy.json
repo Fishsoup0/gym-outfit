@@ -1,0 +1,6 @@
+{"desc":"女生臀腿是强项，练腿日，想买新衣服，预算300",
+ "prompt":"女生，臀腿是强项，想练腿日穿得好看点，预算300。现在只有一件深灰常规短袖和一条亮蓝7寸短裤，买什么？",
+ "user":{"sex":"f","build":"lean","strengths":["glutes","legs"],"day":"legs","scene":"strength","season":"spring_autumn"},
+ "wardrobe":[{"type":"regular_tee","color":"grey_dark"},{"type":"shorts_7","color":"blue"}],
+ "mode":"gap",
+ "expect":{"gap_top3_include_any":["leggings"]}}

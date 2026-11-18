@@ -1,0 +1,6 @@
+{"desc":"偏瘦男生 178/62，练背日，衣柜只有几件",
+ "prompt":"我 178cm 62kg 偏瘦，今天练背。衣服有：黑色修身短袖、浅灰色纯棉宽松短袖、黑色7寸短裤、藏青收脚裤、白色帆布鞋。帮我搭一套。",
+ "user":{"sex":"m","build":"slim","day":"pull","scene":"strength","season":"summer"},
+ "wardrobe":[{"type":"fitted_tee","color":"black"},{"type":"oversized_tee","color":"grey_light","fabric":"cotton"},{"type":"shorts_7","color":"black"},{"type":"joggers","color":"navy"},{"type":"flat_shoes","color":"white"}],
+ "mode":"rank",
+ "expect":{"top1_include_any":["fitted_tee"],"top1_exclude":["oversized_tee"],"top1_verdict_in":["推荐","可以穿"]}}

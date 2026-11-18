@@ -1,0 +1,6 @@
+{"desc":"V形男生拍抖音，推日，衣柜里有雷区单品",
+ "prompt":"我肩背比较好，V形，今天推日要拍抖音视频。有：黑色大挖肩背心、黑白细条纹短袖、白色修身短袖、浅灰纯棉短袖、黑色5寸短裤、橄榄绿7寸短裤、白色帆布鞋、白色中筒袜。",
+ "user":{"sex":"m","build":"v_shape","strengths":["shoulders","back"],"day":"push","scene":"video","season":"summer"},
+ "wardrobe":[{"type":"stringer","color":"black"},{"type":"fitted_tee","color":"black","pattern":"fine_stripe","name":"黑白细条纹短袖"},{"type":"fitted_tee","color":"white"},{"type":"regular_tee","color":"grey_light","fabric":"cotton"},{"type":"shorts_5","color":"black"},{"type":"shorts_7","color":"olive"},{"type":"flat_shoes","color":"white"},{"type":"crew_socks","color":"white"}],
+ "mode":"rank",
+ "expect":{"top1_exclude_names":["黑白细条纹短袖","浅灰常规短袖"],"veto_outfit":{"outfit":[{"type":"fitted_tee","color":"black","pattern":"fine_stripe"},{"type":"shorts_5","color":"black"}],"veto_contains":"细条纹"}}}

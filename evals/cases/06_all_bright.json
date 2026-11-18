@@ -1,0 +1,6 @@
+{"desc":"衣柜全是亮色，没有好选项",
+ "prompt":"我衣服都是亮色的：荧光绿短袖、红色短袖、亮蓝5寸短裤、亮绿7寸短裤、橙色跑鞋。练全身，怎么穿最不丑？要买什么？",
+ "user":{"sex":"m","build":"average","day":"full","scene":"strength","season":"summer"},
+ "wardrobe":[{"type":"regular_tee","color":"neon"},{"type":"regular_tee","color":"red"},{"type":"shorts_5","color":"blue"},{"type":"shorts_7","color":"green"},{"type":"running_shoes","color":"orange"}],
+ "mode":"gap",
+ "expect":{"gap_top1_color_in":["black","white","grey_dark","grey","navy"]}}
