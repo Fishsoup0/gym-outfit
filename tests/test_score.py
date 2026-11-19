@@ -246,3 +246,14 @@ def test_inner_layer_negative_counts_when_outer_worn():
                               {"type": "hoodie", "color": "black"},
                               {"type": "joggers", "color": "black"}])
     assert any(x["rule"] == "内层×体型" and x["score"] < 0 for x in r["breakdown"])
+
+
+def test_tier_boundaries_and_veto():
+    import score as S
+    import rules as R
+    assert [t[1] for t in R.TIERS] == ["夯", "顶级", "人上人", "NPC", "拉完了"]
+    r = S.score_outfit({"scene": "video"}, [{"type": "fitted_tee", "color": "black", "pattern": "fine_stripe"},
+                                            {"type": "shorts_7", "color": "black"}])
+    assert r["tier"] == "拉完了" and r["tier_en"] == "Cooked"
+    for total, tier in [(11, "夯"), (10, "顶级"), (9, "顶级"), (8, "人上人"), (7, "人上人"), (6, "NPC"), (4, "NPC"), (3, "拉完了")]:
+        assert next(t for t in R.TIERS if total >= t[0])[1] == tier

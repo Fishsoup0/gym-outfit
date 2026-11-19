@@ -48,7 +48,17 @@
 | 交叉兼容 | 上松紧×下松紧、明度×重点、同色套装、颜色数、撞色、呼应、袜×下装、logo |
 | 一票否决 | 全身两件以上荧光色、练腿日下装偏透（深蹲会透）、拍视频穿细条纹或小格子 |
 
-命中否决项的搭配直接判为"不合格"，不参与推荐。评级：总分 **≥ 8 推荐**，**4–7 可以穿**，**< 4 不推荐**。
+命中否决项的搭配直接判为"拉完了"。按总分分梯队：
+
+| 分数 | 梯队 | English |
+|---|---|---|
+| ≥ 11 | 夯 | GOAT |
+| 9–10 | 顶级 | Top tier |
+| 7–8 | 人上人 | Above the crowd |
+| 4–6 | NPC | NPC |
+| ≤ 3 或命中否决 | 拉完了 | Cooked |
+
+Skill 支持中英文：用什么语言问，就用什么语言回答。
 
 ## 示例
 
@@ -66,6 +76,8 @@ python3 scripts/score.py rank --user /tmp/user.json --wardrobe /tmp/wardrobe.jso
   "outfits": [{
     "total": 12,
     "verdict": "推荐",
+    "tier": "夯",
+    "tier_en": "GOAT",
     "items": ["黑大挖肩背心", "黑5寸短裤", "白平底鞋", "白中筒袜"],
     "breakdown": [
       { "kind": "单维", "rule": "上衣×体型",     "score": 2, "reason": "大挖肩背心适合V形" },
@@ -86,7 +98,7 @@ python3 scripts/score.py rank --user /tmp/user.json --wardrobe /tmp/wardrobe.jso
 }
 ```
 
-10 条规则加起来 12 分，评级"推荐"。黑白细条纹短袖被一票否决，并在 `veto_warnings` 里单独点名。
+10 条规则加起来 12 分，梯队"夯"。黑白细条纹短袖被一票否决，并在 `veto_warnings` 里单独点名。
 
 ## 安装
 

@@ -235,9 +235,12 @@ def score_outfit(user, items):
         verdict = "不合格"
     else:
         verdict = next(v for th, v in R.VERDICT if total >= th)
+    tier = R.TIERS[-1] if vetoes else next(t for t in R.TIERS if total >= t[0])
     return {
         "total": total,
         "verdict": verdict,
+        "tier": tier[1],
+        "tier_en": tier[2],
         "vetoes": sorted(set(vetoes)),
         "veto_items": {k: sorted(v) for k, v in culprits.items()},
         "items": [i["label"] for i in items],
