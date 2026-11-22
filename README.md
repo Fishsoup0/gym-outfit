@@ -99,7 +99,8 @@ npx skills add Fishsoup0/gym-outfit
 
 # 或者手动克隆到技能目录：
 git clone https://github.com/Fishsoup0/gym-outfit.git ~/.agents/skills/gym-outfit
-# (Codex / Gemini CLI / DeepSeek dsh / OpenCode: ~/.agents/skills/ · Claude Code: ~/.claude/skills/ · Copilot CLI: ~/.copilot/skills/)
+# (Codex / Gemini CLI / OpenCode: ~/.agents/skills/ · Claude Code: ~/.claude/skills/ · Copilot CLI: ~/.copilot/skills/)
+# (DeepSeek Harness: ~/.agents/skills/ 全局，或项目内 .dsh/skills/ · DeepSeek-TUI: /skill install github:Fishsoup0/gym-outfit)
 # (Gemini CLI 也可以：gemini skills install https://github.com/Fishsoup0/gym-outfit)
 # (Claude 网页版 / ChatGPT / 云平台：把文件夹压成 zip，在 Skills 页面上传)
 ```
