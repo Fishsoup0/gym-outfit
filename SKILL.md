@@ -1,6 +1,6 @@
 ---
 name: gym-outfit
-description: 健身房穿搭打分与推荐（中英文）：把衣服拆成属性向量多维打分，给出夯/顶级/人上人/NPC/拉完了梯队，从衣柜搭配或算买哪件提升最大。说"健身穿搭""这套怎么样""买训练服"，或 "gym outfit", "rate my gym fit", "what to wear to the gym" 时用。
+description: 健身房穿搭打分与推荐（中英文）：记住用户的衣柜和身材，把衣服拆成属性向量多维打分，给出夯/顶级/人上人/NPC/拉完了梯队；从衣柜直接搭配，搭不出好看的就推荐该买什么。说"健身穿搭""这套怎么样""买训练服"，或 "gym outfit", "rate my gym fit", "what to wear to the gym" 时用。
 ---
 
 # 健身房穿搭
@@ -11,17 +11,23 @@ description: 健身房穿搭打分与推荐（中英文）：把衣服拆成属�
 
 ## 流程
 
+0. **先查已保存的档案和衣柜**：`python scripts/score.py profile show` 和 `python scripts/score.py closet list`。
+   - 有档案就直接用，不再问体型；本次只补当天的训练日、场景、季节。
+   - 衣柜里有衣服，而且用户说的是"今天穿什么 / 帮我搭一套"，就直接从衣柜搭，不需要用户再列一遍。
+   - 用户第一次提到自己的体型或衣服时，问一句"要不要帮你存起来，以后直接按你的衣柜推荐？"。同意后用 `profile set` 和 `closet add` 保存。之后新买或扔掉衣服，用 `closet add` / `closet remove` 同步。
+   - 如果存储读出来是空的，而用户说以前存过：说明当前运行环境不保留文件（一些网页聊天会每次重置），请用户把衣服清单再发一次，并建议他留一份，方便下次直接粘贴。
 1. **用户向量**：整理成 user.json。缺的字段不追问，按下面的默认值，在回复开头用一行写明假设：
    - 性别 m、体型 average、训练日 full、场景 strength；季节按当前日期推断（6–8 月夏，12–2 月冬，其余春秋）
    - "肚子明显"同时填 `build: high_fat` 和 `weaknesses: ["abs"]`；"宽松短袖"用 `oversized_tee`
    - 预算不进脚本，只用来控制推荐几件、先买哪件
 2. **衣服向量**：把用户描述或照片里的每件衣服写成一条记录，字段只用下面词表里的值。看不清的属性取最可能的值，并在回复里注明。
-3. **选命令**（脚本路径相对本 skill 目录）：
-   - 从衣柜搭配：`python scripts/score.py rank --user user.json --wardrobe w.json --top 3`
+3. **选命令**（脚本路径相对本 skill 目录；`--user` / `--wardrobe` 可以是 JSON 字符串或文件，不给就用已保存的；`--user` 会叠加在已保存的档案上）：
+   - 从已保存的衣柜搭配：`python scripts/score.py rank --user '{"day":"pull"}'`
+   - 用临时给的衣服搭配：`python scripts/score.py rank --user user.json --wardrobe w.json --top 3`
    - 要买什么：`python scripts/score.py gap --user user.json --wardrobe w.json`
    - 评价一套：`python scripts/score.py score --user user.json --outfit o.json`
    - 用户既有衣柜又想买：先跑 rank，再跑 gap。
-   - rank 返回 `too_few: true`（能搭的不到 3 套）时，也跑 gap。
+   - rank 输出里出现 `buy_suggestion`（衣柜里最好的一套不到"人上人"，或者能搭的太少），必须把购买建议讲出来：先说现在最好的一套能穿到哪一档，再说买哪一件（或哪两件）能升到哪一档。
 4. **讲结果**：按下方输出格式，把 breakdown 翻译成人话，只挑影响最大的 2–3 条理由。语气像懂行的朋友，不要念规则名。
    - rank 输出里的 `veto_warnings` 一定要提：哪件单品、为什么别穿。
    - 同分的几套，说清它们的差别（比如"背心更显肩，短袖更日常"），让用户按心情选。

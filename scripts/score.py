@@ -5,6 +5,10 @@
   python score.py score --user user.json --outfit outfit.json   # 给一套打分
   python score.py rank  --user user.json --wardrobe w.json [--top 3]   # 从衣柜里搭出前 N 套
   python score.py gap   --user user.json --wardrobe w.json [--top 5]   # 买哪几件提升最大
+  python score.py closet add --item '{"type":"fitted_tee","color":"black","name":"黑T"}'   # 存进衣柜
+  python score.py closet list | remove --id ID | clear
+  python score.py profile set --user '{"build":"lean"}'   # 保存身材档案
+  python score.py rank            # 不给 --user/--wardrobe 时用已保存的档案和衣柜
 
 user.json   {"sex":"m","build":"lean","strengths":["shoulders"],"weaknesses":["legs"],
              "day":"pull","scene":"strength","season":"summer","emphasis":"upper"}
@@ -285,8 +289,11 @@ def rank(user, wardrobe, top_n=3):
     return out
 
 
+GOOD_ENOUGH = 7  # 衣柜里最好的一套低于"人上人"时，自动附上购买建议
+
+
 def rank_report(user, wardrobe, top_n=3):
-    """CLI 用：前 N 套 + 衣柜里会触发否决的单品提醒。"""
+    """CLI 用：前 N 套 + 衣柜里会触发否决的单品提醒 + （搭不出好看的时）购买建议。"""
     u = norm_user(user)
     items = [norm_item(r, n) for n, r in enumerate(wardrobe)]
     warn = {}
@@ -295,11 +302,20 @@ def rank_report(user, wardrobe, top_n=3):
         for v, its in r["veto_items"].items():
             warn.setdefault(v, set()).update(its)
     outfits = rank(user, wardrobe, top_n)
-    return {
+    out = {
         "outfits": outfits,
         "veto_warnings": [{"reason": k, "involved_items": sorted(v)} for k, v in warn.items()],
         "too_few": len(outfits) < top_n,
     }
+    best = outfits[0]["total"] if outfits and not outfits[0]["vetoes"] else None
+    if best is None or best < GOOD_ENOUGH or out["too_few"]:
+        g = gap(user, wardrobe, 3)
+        out["buy_suggestion"] = {
+            "reason": "衣柜里搭不出人上人以上的一套" if best is None or best < GOOD_ENOUGH else "能搭的组合太少",
+            "single_item_gains": g["single_item_gains"],
+            "pair_gains": g["pair_gains"],
+        }
+    return out
 
 
 def gap(user, wardrobe, top_n=5):
@@ -351,22 +367,121 @@ def gap(user, wardrobe, top_n=5):
     }
 
 
+# ---------- 衣柜与身材档案的本地存储 ----------
+# 默认存在 ~/.gym-outfit/，可用环境变量 GYM_OUTFIT_HOME 改位置。纯 JSON，用户随时可以自己打开改。
+def store_dir():
+    d = os.environ.get("GYM_OUTFIT_HOME") or os.path.join(os.path.expanduser("~"), ".gym-outfit")
+    os.makedirs(d, exist_ok=True)
+    return d
+
+
+def _read(name, default):
+    path = os.path.join(store_dir(), name)
+    if not os.path.exists(path):
+        return default
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def _write(name, data):
+    path = os.path.join(store_dir(), name)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(data, fh, ensure_ascii=False, indent=2)
+    os.replace(tmp, path)
+
+
+def closet_list():
+    return _read("closet.json", {"items": []})["items"]
+
+
+def closet_add(new_items):
+    items = closet_list()
+    if isinstance(new_items, dict):
+        new_items = [new_items]
+    used = {i["id"] for i in items}
+    added = []
+    for raw in new_items:
+        norm_item(raw)  # 先校验 type / color，非法直接报错，不写入
+        item = dict(raw)
+        if not item.get("id"):
+            base = f"{item['type']}-{item.get('color', 'black')}"
+            n = 1
+            while f"{base}-{n}" in used:
+                n += 1
+            item["id"] = f"{base}-{n}"
+        used.add(item["id"])
+        items.append(item)
+        added.append(item)
+    _write("closet.json", {"items": items})
+    return {"added": added, "count": len(items)}
+
+
+def closet_remove(item_id):
+    items = closet_list()
+    keep = [i for i in items if i["id"] != item_id and i.get("name") != item_id]
+    _write("closet.json", {"items": keep})
+    return {"removed": len(items) - len(keep), "count": len(keep)}
+
+
+def profile_get():
+    return _read("profile.json", {})
+
+
+def profile_set(patch):
+    prof = profile_get()
+    prof.update(patch)
+    norm_user(prof)  # 校验
+    _write("profile.json", prof)
+    return prof
+
+
+def _load_arg(val):
+    """参数可以是 JSON 字符串，也可以是 JSON 文件路径。"""
+    if val is None:
+        return None
+    v = val.strip()
+    if v.startswith("{") or v.startswith("["):
+        return json.loads(v)
+    with open(val, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description="gym-outfit 打分引擎")
-    p.add_argument("cmd", choices=["score", "rank", "gap"])
-    p.add_argument("--user", required=True)
+    p.add_argument("cmd", choices=["score", "rank", "gap", "closet", "profile"])
+    p.add_argument("action", nargs="?", help="closet: add/list/remove/clear；profile: set/show")
+    p.add_argument("--user", help="身材 / 当天情况 JSON 或文件；会叠加在已保存的档案上")
     p.add_argument("--outfit")
-    p.add_argument("--wardrobe")
+    p.add_argument("--wardrobe", help="衣服列表 JSON 或文件；不给就用已保存的衣柜")
+    p.add_argument("--item", help="closet add：一件或多件衣服的 JSON")
+    p.add_argument("--id", help="closet remove：衣服 id 或名字")
     p.add_argument("--top", type=int)
     a = p.parse_args(argv)
-    load = lambda path: json.load(open(path, encoding="utf-8"))  # noqa: E731
-    user = load(a.user)
-    if a.cmd == "score":
-        res = score_outfit(user, load(a.outfit))
-    elif a.cmd == "rank":
-        res = rank_report(user, load(a.wardrobe), a.top or 3)
+
+    if a.cmd == "closet":
+        act = a.action or "list"
+        if act == "add":
+            res = closet_add(_load_arg(a.item))
+        elif act == "remove":
+            res = closet_remove(a.id)
+        elif act == "clear":
+            _write("closet.json", {"items": []})
+            res = {"count": 0}
+        else:
+            res = {"items": closet_list(), "store": store_dir()}
+    elif a.cmd == "profile":
+        res = profile_set(_load_arg(a.user)) if a.action == "set" else profile_get()
     else:
-        res = gap(user, load(a.wardrobe), a.top or 5)
+        # 已保存的身材档案打底，本次传入的字段（训练日、场景、季节等）覆盖它
+        user = {**profile_get(), **(_load_arg(a.user) or {})}
+        if a.cmd == "score":
+            res = score_outfit(user, _load_arg(a.outfit))
+        else:
+            wardrobe = _load_arg(a.wardrobe) if a.wardrobe else closet_list()
+            if not wardrobe:
+                raise SystemExit("衣柜是空的：先用 closet add 录入衣服，或用 --wardrobe 传入")
+            res = rank_report(user, wardrobe, a.top or 3) if a.cmd == "rank" else gap(user, wardrobe, a.top or 5)
     print(json.dumps(res, ensure_ascii=False, indent=2))
 
 

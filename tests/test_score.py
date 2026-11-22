@@ -257,3 +257,29 @@ def test_tier_boundaries_and_veto():
     assert r["tier"] == "拉完了" and r["tier_en"] == "Cooked"
     for total, tier in [(11, "夯"), (10, "顶级"), (9, "顶级"), (8, "人上人"), (7, "人上人"), (6, "NPC"), (4, "NPC"), (3, "拉完了")]:
         assert next(t for t in R.TIERS if total >= t[0])[1] == tier
+
+
+def test_closet_and_profile_store(tmp_path, monkeypatch):
+    import score as S
+    monkeypatch.setenv("GYM_OUTFIT_HOME", str(tmp_path))
+    S.profile_set({"sex": "m", "build": "v_shape"})
+    r = S.closet_add([{"type": "tank", "color": "blue", "name": "蓝背心"},
+                      {"type": "tank", "color": "blue"},
+                      {"type": "joggers", "color": "grey_light"}])
+    ids = [i["id"] for i in r["added"]]
+    assert ids[1] != ids[0] and r["count"] == 3          # 同款自动编号，不重 id
+    assert S.closet_remove("蓝背心")["count"] == 2        # 按名字也能删
+    assert S.profile_get()["build"] == "v_shape"
+    import pytest
+    with pytest.raises(ValueError):
+        S.closet_add({"type": "cape", "color": "blue"})  # 非法类型不写入
+    assert len(S.closet_list()) == 2
+
+
+def test_rank_report_suggests_buying_when_closet_is_weak():
+    import score as S
+    user = {"sex": "m", "build": "v_shape", "strengths": ["shoulders"]}
+    weak = [{"type": "tank", "color": "blue"}, {"type": "joggers", "color": "grey_light"}, {"type": "flat_shoes", "color": "black"}]
+    rep = S.rank_report(user, weak, 3)
+    assert rep["outfits"][0]["total"] < S.GOOD_ENOUGH
+    assert rep["buy_suggestion"]["single_item_gains"]

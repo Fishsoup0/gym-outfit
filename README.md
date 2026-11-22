@@ -1,41 +1,32 @@
 # gym-outfit
 
-**把健身房穿搭拆成属性向量、多维打分的 Claude Skill。**
+**健身房穿搭打分与推荐的 AI 技能包：记住你的衣柜和身材，告诉你今天穿哪套、这套是哪一档、缺什么该买什么。**
 
-> **Summary.** gym-outfit is a Claude Agent Skill for gym outfit recommendation. Claude identifies each garment as an attribute vector (type, fit, color, pattern), and a standard-library Python scorer (`scripts/score.py` with rules in `scripts/rules.py`) ranks outfits, finds the most valuable item to buy, or rates a single outfit, with a reason for every point. All aesthetic rules live in one editable file.
+遵循 [Agent Skills](https://agentskills.io) 开放标准，同一个文件夹可以装进 Claude、ChatGPT、Codex、Gemini CLI、DeepSeek、Cursor 等支持这个标准的 AI 工具里，不绑定任何一家。
+
+> **Summary.** gym-outfit is an open Agent Skill for gym outfits. The AI reads each garment as an attribute vector (type, fit, color, pattern); a standard-library Python scorer ranks outfits from your saved wardrobe, rates a single look on a 5-tier scale, and tells you which item to buy when nothing in your closet works. It runs in any agent that supports the Agent Skills standard.
 
 ## 它能做什么
 
-| 用法 | 命令 | 回答的问题 |
+| 你说 | 它做 | 命令 |
 | --- | --- | --- |
-| 搭配 (rank) | `score.py rank` | 从我现有的衣柜里，搭出得分最高的前 3 套 |
-| 补缺 (gap) | `score.py gap` | 再买哪一件，对整体搭配的提升最大 |
-| 评价 (score) | `score.py score` | 这一套好不好看，好在哪、扣在哪 |
+| "这套怎么样？"（发照片或描述） | 打分 + 梯队（夯 / 顶级 / 人上人 / NPC / 拉完了）+ 升一档的最小改法 | `score` |
+| "今天练背，穿什么？" | 从**已保存的衣柜**里搭出前 3 套 | `rank` |
+| "买什么能变好看？" | 算出买哪件（或哪两件）提升最大 | `gap` |
+| "帮我把这些衣服存起来" | 建立你的**衣服库**和**身材档案**，以后不用重复说 | `closet` / `profile` |
 
-既有衣柜又想买衣服时，先 rank 再 gap。
+衣柜里搭不出"人上人"以上的一套时，会**自动附上购买建议**：现在最好能穿到哪一档，买哪一件能升到哪一档。
 
 ## 核心思路
 
-四条审美原则：
+四条审美原则：**露强项、藏弱项、颜色收敛、松紧对比**。
 
-- **露强项**：肩、背、手臂是强项就选能露出来的上衣。
-- **藏弱项**：弱项用宽松、深色或长袖带过，不硬露。
-- **颜色收敛**：全身最好不超过 3 个颜色，避免高饱和撞色。
-- **松紧对比**：上紧下松或上松下紧，上下都宽会显得松垮。
-
-工程上的分工是 **感知交给 Claude，打分交给代码**。Claude 擅长从文字和照片里认出衣服，但不擅长稳定地算分；脚本不会看图，但同样的输入永远得到同样的分数。
+工程上的分工是 **看图交给 AI，打分交给代码**：AI 擅长从文字和照片里认出衣服，但不擅长稳定地算分；脚本不会看图，但同样的输入永远得到同样的分数。
 
 ```
- 用户文字 / 照片
-        |
-        v
- Claude 识别属性向量      (type, color, fit, pattern ...)
-        |
-        v
- score.py  <---  rules.py   (确定性打分，只用标准库)
-        |
-        v
- 带理由的推荐              (总分 + 逐条 breakdown + 否决项)
+ 照片 / 文字 ──▶ AI 识别成属性向量 ──▶ score.py（规则在 rules.py）──▶ 梯队 + 理由 + 改法 / 购买建议
+                                        ▲
+                     ~/.gym-outfit/ 里保存的衣柜和身材档案
 ```
 
 ## 打分维度
@@ -102,32 +93,61 @@ python3 scripts/score.py rank --user /tmp/user.json --wardrobe /tmp/wardrobe.jso
 
 ## 安装
 
-**(a) Claude.ai / Claude App**
+运行时只需要 `SKILL.md` 和 `scripts/` 两部分，脚本只依赖 Python 3 标准库。`tests/` 和 `evals/` 只在开发时用到。
 
-把整个 `gym-outfit/` 文件夹压缩成 zip，在 设置 → Skills 里上传；或者直接让 Claude 帮你保存为 Skill。
+### 一条命令装进多个工具（推荐）
 
-**(b) Claude Code**
+[`skills` CLI](https://github.com/vercel-labs/skills) 会自动检测你电脑上装了哪些 AI 工具，然后装到对应目录：
 
 ```bash
-git clone https://github.com/Fishsoup0/gym-outfit ~/.claude/skills/gym-outfit
+npx skills add Fishsoup0/gym-outfit
 ```
 
-运行时只需要 `SKILL.md` 和 `scripts/`，`tests/` 和 `evals/` 仅用于开发，打包时可以去掉。脚本只依赖 Python 3 标准库。
+### 按工具手动安装
+
+| 工具 | 安装方式 |
+| --- | --- |
+| **Claude Code** | `git clone https://github.com/Fishsoup0/gym-outfit ~/.claude/skills/gym-outfit` |
+| **Claude 网页版 / App** | 把 `gym-outfit/` 文件夹压成 zip，在设置的 Skills 页面上传 |
+| **ChatGPT** | Skills → Create → Upload from your computer，上传 zip。网页版、桌面版能否使用独立技能取决于账号类型，以 OpenAI 帮助文档为准 |
+| **Codex CLI** | `git clone https://github.com/Fishsoup0/gym-outfit ~/.agents/skills/gym-outfit`（旧版本读 `~/.codex/skills/`），在对话里用 `/skills` 或 `$gym-outfit` 调用 |
+| **Gemini CLI** | `gemini skills install https://github.com/Fishsoup0/gym-outfit` |
+| **DeepSeek Harness（dsh）** | 克隆到 `~/.agents/skills/gym-outfit`，或项目内的 `.dsh/skills/gym-outfit` |
+| **Cursor / GitHub Copilot / OpenCode 等** | 用上面的 `npx skills add`，或克隆到工具对应的 skills 目录 |
+| **阿里云百炼 / 腾讯云等云平台智能体** | 上传 zip。注意有的平台要求 zip **根目录直接是 `SKILL.md`**，不能外面再包一层文件夹：在 `gym-outfit/` 目录**里面**执行 `zip -r ../gym-outfit.zip SKILL.md scripts` |
+
+### 豆包、Kimi、DeepSeek 网页版这类聊天 App
+
+到目前为止，我没有查到这几款 App 支持上传自定义技能包的官方说明。可以用退而求其次的方法：新建对话，把 `SKILL.md` 的全文粘贴进去，说"按这个流程帮我看穿搭"。
+
+这样用有两个限制：
+- 这些 App 不会运行 `scripts/` 里的打分脚本，分数会由模型按规则估算，同一套衣服每次的分数可能不一样。
+- 衣柜不会自动保存，要靠你每次把衣服清单发给它。
+
+### 关于衣柜存储
+
+衣柜和身材档案默认保存在 `~/.gym-outfit/closet.json` 和 `profile.json`，是普通 JSON 文件，可以自己打开修改。用环境变量 `GYM_OUTFIT_HOME` 可以换位置。
+
+在 Claude Code、Codex、Gemini CLI 这类本地工具里，这两个文件会一直保留。有些网页聊天每次对话都会重置运行环境，那里存不住，需要每次把衣服清单发一遍。
 
 ## 用法
 
-安装后直接用自然语言说，Claude 会补全缺失信息（并写明假设）、调用脚本、再把结果讲清楚：
+装好以后直接用自然语言说：
 
 ```
-今天练背，我偏瘦，衣柜里有黑色修身短袖、灰色宽松卫衣、黑色 5 寸短裤、白色帆布鞋，帮我搭一套。
-```
-
-```
-我是女生，腿和臀是强项，想拍一条练腿日的视频，现在只有两件黑色运动内衣，该买哪件提升最大？
+帮我把衣服存起来：黑色修身短袖、灰色宽松卫衣、黑色 5 寸短裤、白色帆布鞋。我 178、偏瘦、肩是强项。
 ```
 
 ```
-这套好看吗：亮绿色背心 + 橙色短裤 + 紫色跑鞋，在健身房练有氧穿。
+今天练背，穿什么？
+```
+
+```
+这套怎么样？（附照片）
+```
+
+```
+衣柜里没有好看的组合，买什么提升最大？
 ```
 
 ## 调规则
@@ -145,10 +165,10 @@ python3 -m pytest -q tests     # 单元测试
 
 ```
 gym-outfit/
-├── SKILL.md              # Skill 入口：流程、词表、输出格式
+├── SKILL.md              # 技能入口：流程、词表、输出格式
 ├── scripts/
 │   ├── rules.py          # 规则表（调审美只改这里）
-│   └── score.py          # 打分引擎：score / rank / gap
+│   └── score.py          # 打分引擎：score / rank / gap，衣柜 closet / 身材档案 profile
 ├── evals/
 │   ├── run_evals.py      # 用例运行器
 │   └── cases/            # 6 个端到端用例（JSON）
@@ -157,7 +177,8 @@ gym-outfit/
 
 ## 开发路线
 
-- [x] **v1 规则打分**（当前）：手写规则表，可解释、可复现。
+- [x] **v1 规则打分**：手写规则表，可解释、可复现。
+- [x] **v1.1 衣服库**：保存衣柜和身材档案，直接按衣柜推荐；搭不出好看的自动给购买建议；五档梯队；中英文。
 - [ ] **v2 用户反馈校准权重**：收集"这套我愿意穿 / 不愿意穿"，用来调整各规则的分值。
 - [ ] **v3 照片自动识别属性**：从衣柜或穿搭照片直接提取属性向量，减少手动描述。
 - [ ] 可选：引入 CLIP 图文相似度，作为一个补充打分维度，不替代规则。
