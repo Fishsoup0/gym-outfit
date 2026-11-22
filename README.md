@@ -93,42 +93,22 @@ python3 scripts/score.py rank --user /tmp/user.json --wardrobe /tmp/wardrobe.jso
 
 ## 安装
 
-运行时只需要 `SKILL.md` 和 `scripts/` 两部分，脚本只依赖 Python 3 标准库。`tests/` 和 `evals/` 只在开发时用到。
-
-### 一条命令装进多个工具（推荐）
-
-[`skills` CLI](https://github.com/vercel-labs/skills) 会自动检测你电脑上装了哪些 AI 工具，然后装到对应目录：
-
 ```bash
+# 一条命令，自动装进你电脑上所有支持 Agent Skills 的工具：
 npx skills add Fishsoup0/gym-outfit
+
+# 或者手动克隆到技能目录：
+git clone https://github.com/Fishsoup0/gym-outfit.git ~/.agents/skills/gym-outfit
+# (Codex / Gemini CLI / DeepSeek dsh / OpenCode: ~/.agents/skills/ · Claude Code: ~/.claude/skills/ · Copilot CLI: ~/.copilot/skills/)
+# (Gemini CLI 也可以：gemini skills install https://github.com/Fishsoup0/gym-outfit)
+# (Claude 网页版 / ChatGPT / 云平台：把文件夹压成 zip，在 Skills 页面上传)
 ```
 
-### 按工具手动安装
+> 国内克隆报 `Error in the HTTP2 framing layer`：先运行 `git config --global http.version HTTP/1.1` 再试。
 
-| 工具 | 安装方式 |
-| --- | --- |
-| **Claude Code** | `git clone https://github.com/Fishsoup0/gym-outfit ~/.claude/skills/gym-outfit` |
-| **Claude 网页版 / App** | 把 `gym-outfit/` 文件夹压成 zip，在设置的 Skills 页面上传 |
-| **ChatGPT** | Skills → Create → Upload from your computer，上传 zip。网页版、桌面版能否使用独立技能取决于账号类型，以 OpenAI 帮助文档为准 |
-| **Codex CLI** | `git clone https://github.com/Fishsoup0/gym-outfit ~/.agents/skills/gym-outfit`（旧版本读 `~/.codex/skills/`），在对话里用 `/skills` 或 `$gym-outfit` 调用 |
-| **Gemini CLI** | `gemini skills install https://github.com/Fishsoup0/gym-outfit` |
-| **DeepSeek Harness（dsh）** | 克隆到 `~/.agents/skills/gym-outfit`，或项目内的 `.dsh/skills/gym-outfit` |
-| **Cursor / GitHub Copilot / OpenCode 等** | 用上面的 `npx skills add`，或克隆到工具对应的 skills 目录 |
-| **阿里云百炼 / 腾讯云等云平台智能体** | 上传 zip。注意有的平台要求 zip **根目录直接是 `SKILL.md`**，不能外面再包一层文件夹：在 `gym-outfit/` 目录**里面**执行 `zip -r ../gym-outfit.zip SKILL.md scripts` |
+依赖：Python 3 标准库。衣柜和身材档案存在 `~/.gym-outfit/`（可用 `GYM_OUTFIT_HOME` 修改）。
 
-### 豆包、Kimi、DeepSeek 网页版这类聊天 App
-
-到目前为止，我没有查到这几款 App 支持上传自定义技能包的官方说明。可以用退而求其次的方法：新建对话，把 `SKILL.md` 的全文粘贴进去，说"按这个流程帮我看穿搭"。
-
-这样用有两个限制：
-- 这些 App 不会运行 `scripts/` 里的打分脚本，分数会由模型按规则估算，同一套衣服每次的分数可能不一样。
-- 衣柜不会自动保存，要靠你每次把衣服清单发给它。
-
-### 关于衣柜存储
-
-衣柜和身材档案默认保存在 `~/.gym-outfit/closet.json` 和 `profile.json`，是普通 JSON 文件，可以自己打开修改。用环境变量 `GYM_OUTFIT_HOME` 可以换位置。
-
-在 Claude Code、Codex、Gemini CLI 这类本地工具里，这两个文件会一直保留。有些网页聊天每次对话都会重置运行环境，那里存不住，需要每次把衣服清单发一遍。
+没有技能功能的聊天 App（豆包、Kimi 等）：把 `SKILL.md` 全文粘贴进对话即可使用。这时分数由模型估算，衣柜也不会保存。
 
 ## 用法
 
