@@ -109,7 +109,7 @@ python3 scripts/score.py rank --user /tmp/user.json --wardrobe /tmp/wardrobe.jso
 **(b) Claude Code**
 
 ```bash
-git clone https://github.com/<you>/gym-outfit ~/.claude/skills/gym-outfit
+git clone https://github.com/Fishsoup0/gym-outfit ~/.claude/skills/gym-outfit
 ```
 
 运行时只需要 `SKILL.md` 和 `scripts/`，`tests/` 和 `evals/` 仅用于开发，打包时可以去掉。脚本只依赖 Python 3 标准库。
